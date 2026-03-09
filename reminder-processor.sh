@@ -2,7 +2,7 @@
 # Creative Maintenance Reminder Processor
 # Runs every 15 minutes via launchd
 
-REPO_DIR="$HOME/github/115_creative-maintenance"
+REPO_DIR="$HOME/github/115_maintenance"
 REMINDERS_FILE="$REPO_DIR/reminders.yaml"
 LOG_FILE="$HOME/logs/creative-maintenance.log"
 
@@ -29,7 +29,7 @@ import os
 import subprocess
 import sys
 
-REPO_DIR = os.path.expanduser("~/github/115_creative-maintenance")
+REPO_DIR = os.path.expanduser("~/github/115_maintenance")
 REMINDERS_FILE = os.path.join(REPO_DIR, "reminders.yaml")
 
 # Client to Telegram topic mapping (from customer-work group)

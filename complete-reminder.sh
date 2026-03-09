@@ -3,7 +3,7 @@
 # Called when someone marks a reminder as complete
 # Usage: ./complete-reminder.sh <reminder-id>
 
-REPO_DIR="$HOME/github/115_creative-maintenance"
+REPO_DIR="$HOME/github/115_maintenance"
 REMINDERS_FILE="$REPO_DIR/reminders.yaml"
 
 if [[ -z "$1" ]]; then
@@ -26,7 +26,7 @@ import os
 import subprocess
 import sys
 
-REPO_DIR = os.path.expanduser("~/github/115_creative-maintenance")
+REPO_DIR = os.path.expanduser("~/github/115_maintenance")
 REMINDERS_FILE = os.path.join(REPO_DIR, "reminders.yaml")
 REMINDER_ID = "$REMINDER_ID"
 TODAY = "$TODAY"
