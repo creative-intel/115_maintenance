@@ -15,9 +15,17 @@
 #   last_sent: YYYY-MM-DD (auto-updated when reminder fires)
 
 reminders:
+  - id: ars-ssl-cert-test
+    client: ARS
+    due_date: "2026-03-09"
+    recurrence: null
+    description: |
+      # This is just a test, it should be deleted from the file once fired.
+    status: pending
+
   - id: efs-rotate-azure-client-secret
     client: EFS
-    due_date: "2026-03-09"
+    due_date: "2026-09-06"
     recurrence: "180d"
     description: |
       # Rotate Microsoft Entra ID Client Secret
@@ -57,3 +65,4 @@ reminders:
 
       9. Back in Entra, delete the old (expiring) secret from the Certificates & secrets page so it can't be misused.
     status: pending
+    last_completed: "2026-03-09"
