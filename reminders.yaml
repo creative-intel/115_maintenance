@@ -14,4 +14,46 @@
 #   status: pending | sent | completed
 #   last_sent: YYYY-MM-DD (auto-updated when reminder fires)
 
-reminders: []
+reminders:
+  - id: efs-rotate-azure-client-secret
+    client: EFS
+    due_date: "2026-03-09"
+    recurrence: "180d"
+    description: |
+      # Rotate Microsoft Entra ID Client Secret
+
+      App: Call Intelligence Pipeline
+      Admin account: tommy@elitefieldservice.com
+      ---
+
+      ## Steps
+
+      1. Sign in at [entra.microsoft.com](https://entra.microsoft.com) as tommy@elitefieldservice.com.
+
+      2. Navigate to Applications → App registrations and select the Call Intelligence Pipeline app.
+
+      3. Go to Certificates & secrets → Client secrets.
+
+      4. Click New client secret. Set the description (e.g. `call-intel-api-production-2026-09`) and expiration to 6 months. Click Add.
+
+      5. Copy the secret value immediately — it's only shown once. The "Secret ID" column is not the secret; the "Value" column is what you need.
+
+      6. SSH into the GCP VM and update the .env file:
+         ```
+         gcloud compute ssh <VM_NAME> --zone=<ZONE>
+         sudo -u deploy nano /opt/call-intelligence-pipeline/config/.env
+         ```
+         Replace the AZURE_CLIENT_SECRET value with the new secret.
+
+      7. Restart the API service to pick up the change:
+         ```
+         sudo systemctl restart call-intel-api
+         ```
+
+      8. Verify:
+         ```
+         curl -s http://localhost:8000/api/v1/health
+         ```
+
+      9. Back in Entra, delete the old (expiring) secret from the Certificates & secrets page so it can't be misused.
+    status: pending
