@@ -1,0 +1,142 @@
+#!/bin/zsh
+# Creative Maintenance Reminder Processor
+# Runs every 15 minutes via launchd
+
+REPO_DIR="$HOME/github/creative-maintenance"
+REMINDERS_FILE="$REPO_DIR/reminders.yaml"
+LOG_FILE="$HOME/logs/creative-maintenance.log"
+
+# Ensure log directory exists
+mkdir -p "$HOME/logs"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+# Pull latest changes
+cd "$REPO_DIR" || exit 1
+git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
+
+# Get today's date
+TODAY=$(date +%Y-%m-%d)
+log "Processing reminders for $TODAY"
+
+# Parse and process reminders using Python (has good YAML support)
+python3 << 'PYTHON_SCRIPT'
+import yaml
+import datetime
+import os
+import subprocess
+import sys
+
+REPO_DIR = os.path.expanduser("~/github/creative-maintenance")
+REMINDERS_FILE = os.path.join(REPO_DIR, "reminders.yaml")
+
+# Client to Telegram topic mapping (from customer-work group)
+CLIENT_CHANNELS = {
+    "EFS": 28,           # EFS topic ID in customer-work group
+    "AEBatencourt": 26,  # AEBatencourt topic ID
+    "ARS": 25,           # ARS topic ID
+    "Creative Intelligence": 24,  # General CI topic
+    "Internal": 24,      # Same as CI
+}
+
+def send_telegram_message(topic_id, message):
+    """Send message to specific topic in customer-work group"""
+    chat_id = "-1003869516415"
+    
+    # Use openclaw message tool via subprocess
+    cmd = [
+        "openclaw", "message", "send",
+        "--channel", "telegram",
+        "--target", f"{chat_id}/{topic_id}",
+        "--message", message
+    ]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+        return True
+    except Exception as e:
+        print(f"Failed to send message to topic {topic_id}: {e}")
+        return False
+
+def parse_recurrence(recurrence):
+    """Parse recurrence string like '30d', '90d', '1y' into days"""
+    if not recurrence:
+        return None
+    
+    recurrence = str(recurrence).lower().strip()
+    
+    if recurrence.endswith('d'):
+        return int(recurrence[:-1])
+    elif recurrence.endswith('w'):
+        return int(recurrence[:-1]) * 7
+    elif recurrence.endswith('m'):
+        return int(recurrence[:-1]) * 30  # approximate
+    elif recurrence.endswith('y'):
+        return int(recurrence[:-1]) * 365
+    return None
+
+def add_days(date_str, days):
+    """Add days to a date string"""
+    dt = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+    dt = dt + datetime.timedelta(days=days)
+    return dt.strftime("%Y-%m-%d")
+
+def main():
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    # Load reminders
+    with open(REMINDERS_FILE, 'r') as f:
+        data = yaml.safe_load(f) or {'reminders': []}
+    
+    reminders = data.get('reminders', [])
+    updated = False
+    
+    for reminder in reminders:
+        due_date = reminder.get('due_date', '')
+        status = reminder.get('status', 'pending')
+        
+        # Check if reminder is due
+        if due_date and due_date <= today and status == 'pending':
+            client = reminder.get('client', 'Creative Intelligence')
+            description = reminder.get('description', 'No description provided')
+            recurrence = reminder.get('recurrence')
+            reminder_id = reminder.get('id', 'unknown')
+            
+            # Build message
+            message = f"🔔 **Maintenance Reminder: {client}**\n\n"
+            message += f"**Task:** {reminder_id}\n"
+            message += f"**Due:** {due_date}\n"
+            if recurrence:
+                message += f"**Recurrence:** Every {recurrence}\n"
+            message += f"\n{description}\n\n"
+            message += "Reply with ✅ when complete."
+            
+            # Get topic ID for client
+            topic_id = CLIENT_CHANNELS.get(client, 24)  # Default to CI general
+            
+            print(f"Sending reminder: {reminder_id} for {client}")
+            
+            # Send message
+            if send_telegram_message(topic_id, message):
+                reminder['status'] = 'sent'
+                reminder['last_sent'] = today
+                updated = True
+            
+    # Save if updated
+    if updated:
+        with open(REMINDERS_FILE, 'w') as f:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        
+        # Commit and push
+        os.chdir(REPO_DIR)
+        subprocess.run(["git", "add", "reminders.yaml"])
+        subprocess.run(["git", "commit", "-m", f"Update reminders - sent notifications on {today}"])
+        subprocess.run(["git", "push"])
+        print("Changes committed and pushed")
+
+if __name__ == "__main__":
+    main()
+PYTHON_SCRIPT
+
+log "Reminder processing complete"

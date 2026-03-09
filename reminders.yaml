@@ -1,0 +1,17 @@
+# Creative Maintenance Reminders
+# 
+# This file is managed automatically by the reminder system.
+# You can edit it manually - changes will be picked up on the next cron run.
+#
+# Format:
+# - id: unique-identifier (lowercase, no spaces, use dashes)
+#   client: ClientName (used to route to correct Telegram channel)
+#   due_date: YYYY-MM-DD (when the reminder should fire)
+#   recurrence: null (one-time) or "30d", "90d", "1y", etc.
+#   description: |
+#     Markdown description of what needs to be done.
+#     Can be multi-line.
+#   status: pending | sent | completed
+#   last_sent: YYYY-MM-DD (auto-updated when reminder fires)
+
+reminders: []
