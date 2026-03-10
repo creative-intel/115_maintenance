@@ -2,3 +2,5 @@
 # Contains sensitive tokens - do not commit to public repos!
 
 config.yaml
+.env
+token.yaml

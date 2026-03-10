@@ -48,11 +48,22 @@ CLIENT_CHANNELS = {
 }
 
 def load_config():
-    """Load config with bot token"""
+    """Load config with bot token from separate file"""
+    config = {}
+    # Load main config
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'r') as f:
-            return yaml.safe_load(f) or {}
-    return {}
+            config = yaml.safe_load(f) or {}
+    
+    # Load token from separate file
+    token_file = config.get('token_file', 'token.yaml')
+    token_path = os.path.join(REPO_DIR, token_file)
+    if os.path.exists(token_path):
+        with open(token_path, 'r') as f:
+            token_config = yaml.safe_load(f) or {}
+            config['telegram_bot_token'] = token_config.get('telegram_bot_token')
+    
+    return config
 
 async def send_telegram_message(topic_id, message):
     """Send message to specific topic in customer-work group using python-telegram-bot"""

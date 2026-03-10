@@ -1,0 +1,19 @@
+# Configuration for 115_maintenance reminder system
+# 
+# Non-sensitive configuration - safe to commit
+# For bot token, see token.yaml (gitignored)
+
+# Chat and topic configuration
+chat_id: "-1003869516415"
+
+# Topic IDs for each client (from customer-work group)
+# These are message_thread_id values in Telegram forum topics
+client_topics:
+  EFS: 28
+  AEBatencourt: 26
+  ARS: 31
+  Creative Intelligence: 1
+  Internal: 1
+
+# Token location
+token_file: "token.yaml"
