@@ -5,6 +5,7 @@
 REPO_DIR="$HOME/github/115_maintenance"
 REMINDERS_FILE="$REPO_DIR/reminders.yaml"
 LOG_FILE="$HOME/logs/creative-maintenance.log"
+CONFIG_FILE="$REPO_DIR/config.yaml"
 
 # Ensure log directory exists
 mkdir -p "$HOME/logs"
@@ -21,7 +22,7 @@ git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
 TODAY=$(date +%Y-%m-%d)
 log "Processing reminders for $TODAY"
 
-# Parse and process reminders using Python (has good YAML support)
+# Parse and process reminders using Python
 python3 << 'PYTHON_SCRIPT'
 import yaml
 import datetime
@@ -31,6 +32,7 @@ import sys
 
 REPO_DIR = os.path.expanduser("~/github/115_maintenance")
 REMINDERS_FILE = os.path.join(REPO_DIR, "reminders.yaml")
+CONFIG_FILE = os.path.join(REPO_DIR, "config.yaml")
 
 # Client to Telegram topic mapping (from customer-work group)
 CLIENT_CHANNELS = {
@@ -41,20 +43,40 @@ CLIENT_CHANNELS = {
     "Internal": 24,      # Same as CI
 }
 
+def load_config():
+    """Load config with bot token"""
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
 def send_telegram_message(topic_id, message):
-    """Send message to specific topic in customer-work group"""
-    chat_id = "-1003869516415"
-    
-    # Use openclaw message tool via subprocess
-    cmd = [
-        "openclaw", "message", "send",
-        "--channel", "telegram",
-        "--target", f"{chat_id}/{topic_id}",
-        "--message", message
-    ]
+    """Send message to specific topic in customer-work group using python-telegram-bot"""
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
+        from telegram import Bot
+        
+        config = load_config()
+        bot_token = config.get('telegram_bot_token')
+        
+        if not bot_token:
+            print("ERROR: No telegram_bot_token found in config.yaml")
+            return False
+        
+        chat_id = "-1003869516415"
+        
+        bot = Bot(token=bot_token)
+        bot.send_message(
+            chat_id=chat_id,
+            message_thread_id=topic_id,
+            text=message,
+            parse_mode='Markdown'
+        )
+        print(f"Message sent to topic {topic_id}")
         return True
+        
+    except ImportError:
+        print("ERROR: python-telegram-bot not installed. Run: pip3 install python-telegram-bot")
+        return False
     except Exception as e:
         print(f"Failed to send message to topic {topic_id}: {e}")
         return False

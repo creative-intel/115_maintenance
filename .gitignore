@@ -1,0 +1,4 @@
+# Configuration file for maintenance reminders
+# Contains sensitive tokens - do not commit to public repos!
+
+config.yaml
