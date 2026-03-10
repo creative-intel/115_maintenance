@@ -9,7 +9,8 @@ reminders:
     Check in on the status of ARS automation implementations.
 
     '
-  status: pending
+  status: sent
+  last_sent: '2026-03-10'
 - id: ars-test-reminder-0310
   client: ARS
   due_date: '2026-03-10'
@@ -17,7 +18,8 @@ reminders:
   description: '# Test to see if this works.
 
     '
-  status: pending
+  status: sent
+  last_sent: '2026-03-10'
 - id: efs-rotate-azure-client-secret
   client: EFS
   due_date: '2026-09-06'
