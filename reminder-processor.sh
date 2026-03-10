@@ -18,6 +18,9 @@ log() {
 cd "$REPO_DIR" || exit 1
 git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
 
+# Activate virtual environment
+source "$REPO_DIR/venv/bin/activate"
+
 # Get today's date
 TODAY=$(date +%Y-%m-%d)
 log "Processing reminders for $TODAY"
