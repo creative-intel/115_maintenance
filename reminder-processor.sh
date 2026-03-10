@@ -27,6 +27,7 @@ log "Processing reminders for $TODAY"
 
 # Parse and process reminders using Python
 python3 << 'PYTHON_SCRIPT'
+import asyncio
 import yaml
 import datetime
 import os
@@ -53,7 +54,7 @@ def load_config():
             return yaml.safe_load(f) or {}
     return {}
 
-def send_telegram_message(topic_id, message):
+async def send_telegram_message(topic_id, message):
     """Send message to specific topic in customer-work group using python-telegram-bot"""
     try:
         from telegram import Bot
@@ -68,7 +69,7 @@ def send_telegram_message(topic_id, message):
         chat_id = "-1003869516415"
         
         bot = Bot(token=bot_token)
-        bot.send_message(
+        await bot.send_message(
             chat_id=chat_id,
             message_thread_id=topic_id,
             text=message,
@@ -107,7 +108,7 @@ def add_days(date_str, days):
     dt = dt + datetime.timedelta(days=days)
     return dt.strftime("%Y-%m-%d")
 
-def main():
+async def main():
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     
     # Load reminders
@@ -143,7 +144,7 @@ def main():
             print(f"Sending reminder: {reminder_id} for {client}")
             
             # Send message
-            if send_telegram_message(topic_id, message):
+            if await send_telegram_message(topic_id, message):
                 reminder['status'] = 'sent'
                 reminder['last_sent'] = today
                 updated = True
@@ -161,7 +162,7 @@ def main():
         print("Changes committed and pushed")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 PYTHON_SCRIPT
 
 log "Reminder processing complete"
