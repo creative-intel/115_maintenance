@@ -1,13 +1,4 @@
 reminders:
-- id: ars-test-reminder-0310
-  client: ARS
-  due_date: '2026-03-10'
-  recurrence: null
-  description: '# Test to see if this works.
-
-    '
-  status: sent
-  last_sent: '2026-03-10'
 - id: efs-rotate-azure-client-secret
   client: EFS
   due_date: '2026-09-06'
