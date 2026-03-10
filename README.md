@@ -5,9 +5,10 @@ Automated reminder system for recurring maintenance tasks (SSL certificates, cli
 ## How It Works
 
 - Reminders are stored in `reminders.yaml` (git-backed, human editable)
-- The system checks every 15 minutes for due reminders
+- The processor runs every 15 minutes to check for due reminders
 - When a reminder is due, it sends a message to the appropriate Telegram topic
-- After you complete a task and reply ✅, the system either:
+- The listener runs continuously to watch for completion confirmations
+- After you complete a task and reply ✅ to the reminder message, the system either:
   - **Recurring reminders**: Updates the due date based on the interval
   - **One-time reminders**: Removes them from the list
 
@@ -43,10 +44,22 @@ source venv/bin/activate
 pip install python-telegram-bot pyyaml
 ```
 
-### 4. Start the Cron Job
+### 4. Install LaunchAgent for Processor (sends reminders)
+
+Copy the launchd plist and load it:
 
 ```bash
+cp ~/github/115_maintenance/launchd/ai.creative-intelligence.maintenance-reminders.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/ai.creative-intelligence.maintenance-reminders.plist
+```
+
+### 5. Install LaunchAgent for Listener (processes completions)
+
+The listener watches for ✅ replies and updates reminders:
+
+```bash
+cp ~/github/115_maintenance/launchd/ai.creative-intelligence.maintenance-listener.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/ai.creative-intelligence.maintenance-listener.plist
 ```
 
 ## Adding a Reminder
@@ -97,7 +110,21 @@ reminders:
 | ARS | 25 | #ars in customer-work |
 | Creative Intelligence / Internal | 24 | #general in customer-work |
 
-## Manual Completion
+## Completing Reminders
+
+### Automatic (Reply to Message)
+
+Reply directly to the reminder message with ✅ (or "done"):
+
+1. Find the reminder message in the Telegram topic
+2. Swipe right or tap reply
+3. Send ✅
+4. The system will automatically:
+   - Remove one-time reminders from reminders.yaml
+   - Update due dates for recurring reminders
+   - Commit and push the changes
+
+### Manual (Command Line)
 
 If you need to mark a reminder complete outside of Telegram:
 
@@ -138,11 +165,14 @@ Check the logs at:
 ## System Status
 
 ```bash
-# Check if the cron job is running
+# Check if both services are running
 launchctl list | grep creative-intelligence
 
-# View recent logs
+# View processor logs (sends reminders)
 tail -f ~/logs/creative-maintenance.log
+
+# View listener logs (processes completions)
+tail -f ~/logs/creative-maintenance-listener.log
 
 # Manual run for testing
 ~/github/115_maintenance/reminder-processor.sh
