@@ -1,16 +1,4 @@
 reminders:
-- id: ars-automations-followup-0310
-  client: ARS
-  due_date: '2026-03-10'
-  recurrence: null
-  description: '# Follow up on ARS automations
-
-
-    Check in on the status of ARS automation implementations.
-
-    '
-  status: sent
-  last_sent: '2026-03-10'
 - id: ars-test-reminder-0310
   client: ARS
   due_date: '2026-03-10'
