@@ -38,14 +38,17 @@ REPO_DIR = os.path.expanduser("~/github/115_maintenance")
 REMINDERS_FILE = os.path.join(REPO_DIR, "reminders.yaml")
 CONFIG_FILE = os.path.join(REPO_DIR, "config.yaml")
 
-# Client to Telegram topic mapping (from customer-work group)
-CLIENT_CHANNELS = {
-    "EFS": 28,           # EFS topic ID in customer-work group
-    "AEBatencourt": 26,  # AEBatencourt topic ID
-    "ARS": 25,           # ARS topic ID
-    "Creative Intelligence": 24,  # General CI topic
-    "Internal": 24,      # Same as CI
-}
+# Client to Telegram topic mapping - loaded from config.yaml
+def load_client_channels():
+    """Load client topic mappings from config.yaml"""
+    config = load_config()
+    return config.get('client_topics', {
+        "EFS": 28,
+        "AEBatencourt": 26,
+        "ARS": 31,
+        "Creative Intelligence": 1,
+        "Internal": 1
+    })
 
 def load_config():
     """Load config with bot token from separate file"""
@@ -150,7 +153,8 @@ async def main():
             message += "Reply with ✅ when complete."
             
             # Get topic ID for client
-            topic_id = CLIENT_CHANNELS.get(client, 24)  # Default to CI general
+            CLIENT_CHANNELS = load_client_channels()
+            topic_id = CLIENT_CHANNELS.get(client, 1)  # Default to CI general (topic 1)
             
             print(f"Sending reminder: {reminder_id} for {client}")
             
