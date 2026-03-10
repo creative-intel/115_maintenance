@@ -1,68 +1,32 @@
-# Creative Maintenance Reminders
-# 
-# This file is managed automatically by the reminder system.
-# You can edit it manually - changes will be picked up on the next cron run.
-#
-# Format:
-# - id: unique-identifier (lowercase, no spaces, use dashes)
-#   client: ClientName (used to route to correct Telegram channel)
-#   due_date: YYYY-MM-DD (when the reminder should fire)
-#   recurrence: null (one-time) or "30d", "90d", "1y", etc.
-#   description: |
-#     Markdown description of what needs to be done.
-#     Can be multi-line.
-#   status: pending | sent | completed
-#   last_sent: YYYY-MM-DD (auto-updated when reminder fires)
-
 reminders:
-  - id: ars-ssl-cert-test
-    client: ARS
-    due_date: "2026-03-09"
-    recurrence: null
-    description: |
-      # This is just a test, it should be deleted from the file once fired.
-    status: pending
+- id: ars-ssl-cert-test
+  client: ARS
+  due_date: '2026-03-09'
+  recurrence: null
+  description: '# This is just a test, it should be deleted from the file once fired.
 
-  - id: efs-rotate-azure-client-secret
-    client: EFS
-    due_date: "2026-09-06"
-    recurrence: "180d"
-    description: |
-      # Rotate Microsoft Entra ID Client Secret
-
-      App: Call Intelligence Pipeline
-      Admin account: tommy@elitefieldservice.com
-      ---
-
-      ## Steps
-
-      1. Sign in at [entra.microsoft.com](https://entra.microsoft.com) as tommy@elitefieldservice.com.
-
-      2. Navigate to Applications → App registrations and select the Call Intelligence Pipeline app.
-
-      3. Go to Certificates & secrets → Client secrets.
-
-      4. Click New client secret. Set the description (e.g. `call-intel-api-production-2026-09`) and expiration to 6 months. Click Add.
-
-      5. Copy the secret value immediately — it's only shown once. The "Secret ID" column is not the secret; the "Value" column is what you need.
-
-      6. SSH into the GCP VM and update the .env file:
-         ```
-         gcloud compute ssh <VM_NAME> --zone=<ZONE>
-         sudo -u deploy nano /opt/call-intelligence-pipeline/config/.env
-         ```
-         Replace the AZURE_CLIENT_SECRET value with the new secret.
-
-      7. Restart the API service to pick up the change:
-         ```
-         sudo systemctl restart call-intel-api
-         ```
-
-      8. Verify:
-         ```
-         curl -s http://localhost:8000/api/v1/health
-         ```
-
-      9. Back in Entra, delete the old (expiring) secret from the Certificates & secrets page so it can't be misused.
-    status: pending
-    last_completed: "2026-03-09"
+    '
+  status: sent
+  last_sent: '2026-03-09'
+- id: efs-rotate-azure-client-secret
+  client: EFS
+  due_date: '2026-09-06'
+  recurrence: 180d
+  description: "# Rotate Microsoft Entra ID Client Secret\n\nApp: Call Intelligence\
+    \ Pipeline\nAdmin account: tommy@elitefieldservice.com\n---\n\n## Steps\n\n1.\
+    \ Sign in at [entra.microsoft.com](https://entra.microsoft.com) as tommy@elitefieldservice.com.\n\
+    \n2. Navigate to Applications → App registrations and select the Call Intelligence\
+    \ Pipeline app.\n\n3. Go to Certificates & secrets → Client secrets.\n\n4. Click\
+    \ New client secret. Set the description (e.g. `call-intel-api-production-2026-09`)\
+    \ and expiration to 6 months. Click Add.\n\n5. Copy the secret value immediately\
+    \ — it's only shown once. The \"Secret ID\" column is not the secret; the \"Value\"\
+    \ column is what you need.\n\n6. SSH into the GCP VM and update the .env file:\n\
+    \   ```\n   gcloud compute ssh <VM_NAME> --zone=<ZONE>\n   sudo -u deploy nano\
+    \ /opt/call-intelligence-pipeline/config/.env\n   ```\n   Replace the AZURE_CLIENT_SECRET\
+    \ value with the new secret.\n\n7. Restart the API service to pick up the change:\n\
+    \   ```\n   sudo systemctl restart call-intel-api\n   ```\n\n8. Verify:\n   ```\n\
+    \   curl -s http://localhost:8000/api/v1/health\n   ```\n\n9. Back in Entra, delete\
+    \ the old (expiring) secret from the Certificates & secrets page so it can't be\
+    \ misused.\n"
+  status: pending
+  last_completed: '2026-03-09'
