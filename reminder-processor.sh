@@ -28,6 +28,7 @@ log "Processing reminders for $TODAY"
 # Parse and process reminders using Python
 python3 << 'PYTHON_SCRIPT'
 import asyncio
+import json
 import yaml
 import datetime
 import os
@@ -37,6 +38,7 @@ import sys
 REPO_DIR = os.path.expanduser("~/github/115_maintenance")
 REMINDERS_FILE = os.path.join(REPO_DIR, "reminders.yaml")
 CONFIG_FILE = os.path.join(REPO_DIR, "config.yaml")
+STATE_FILE = os.path.join(REPO_DIR, ".bot-state.json")
 
 # Client to Telegram topic mapping - loaded from config.yaml
 def load_client_channels():
@@ -49,6 +51,18 @@ def load_client_channels():
         "Creative Intelligence": 1,
         "Internal": 1
     })
+
+def load_state():
+    """Load bot state (message ID -> reminder ID mapping)"""
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, 'r') as f:
+            return json.load(f)
+    return {"message_map": {}}
+
+def save_state(state):
+    """Save bot state"""
+    with open(STATE_FILE, 'w') as f:
+        json.dump(state, f, indent=2)
 
 def load_config():
     """Load config with bot token from separate file"""
@@ -78,26 +92,26 @@ async def send_telegram_message(topic_id, message):
         
         if not bot_token:
             print("ERROR: No telegram_bot_token found in config.yaml")
-            return False
+            return None
         
         chat_id = "-1003869516415"
         
         bot = Bot(token=bot_token)
-        await bot.send_message(
+        sent_msg = await bot.send_message(
             chat_id=chat_id,
             message_thread_id=topic_id,
             text=message,
             parse_mode='Markdown'
         )
-        print(f"Message sent to topic {topic_id}")
-        return True
+        print(f"Message sent to topic {topic_id}, message ID: {sent_msg.message_id}")
+        return sent_msg.message_id
         
     except ImportError:
         print("ERROR: python-telegram-bot not installed. Run: pip3 install python-telegram-bot")
-        return False
+        return None
     except Exception as e:
         print(f"Failed to send message to topic {topic_id}: {e}")
-        return False
+        return None
 
 def parse_recurrence(recurrence):
     """Parse recurrence string like '30d', '90d', '1y' into days"""
@@ -158,10 +172,18 @@ async def main():
             
             print(f"Sending reminder: {reminder_id} for {client}")
             
-            # Send message
-            if await send_telegram_message(topic_id, message):
+            # Send message and get message ID
+            message_id = await send_telegram_message(topic_id, message)
+            if message_id:
                 reminder['status'] = 'sent'
                 reminder['last_sent'] = today
+                
+                # Save message ID mapping for completion tracking
+                state = load_state()
+                state["message_map"][str(message_id)] = reminder_id
+                save_state(state)
+                print(f"Saved message mapping: {message_id} -> {reminder_id}")
+                
                 updated = True
             
     # Save if updated
